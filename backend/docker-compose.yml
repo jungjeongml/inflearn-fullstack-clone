@@ -1,6 +1,7 @@
 services:
   postgres:
-    image: postgres:latest
+    # Pin to avoid breaking volume format changes in Postgres 18+
+    image: postgres:16
     container_name: inflearn-clone-db
     ports:
       - "5432:5432"
