@@ -1,12 +1,13 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { SectionsService } from './sections.service';
 import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
-import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiParam } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { CreateSectionDto } from './dto/create-section.dto';
 import {Section as SectionEntity} from 'src/_gen/prisma-class/section'
 import { UpdateSectionDto } from './dto/update-section.dto';
 import type { Request } from 'express';
 
+@ApiTags('섹션')
 @Controller('sections')
 export class SectionsController {
   constructor(private readonly sectionsService: SectionsService) {}
