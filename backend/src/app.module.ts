@@ -7,9 +7,10 @@ import { PrismaModule } from './prisma/prisma.module';
 import { CoursesModule } from './courses/courses.module';
 import { LecturesModule } from './lectures/lectures.module';
 import { SectionsModule } from './sections/sections.module';
+import { CategoriesModule } from './categories/categories.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({isGlobal: true}), AuthModule, PrismaModule, CoursesModule, LecturesModule, SectionsModule],
+  imports: [ConfigModule.forRoot({isGlobal: true}), AuthModule, PrismaModule, CoursesModule, LecturesModule, SectionsModule, CategoriesModule],
   controllers: [AppController],
   providers: [AppService],
 })
