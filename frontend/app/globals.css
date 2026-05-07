@@ -81,6 +81,8 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --layout-x: 32px;
+  --layout-width:1440px;
 }
 
 .dark {
@@ -126,5 +128,21 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+@layer component {
+  .layout-shell {
+    padding-inline: var(--layout-x);
+    max-width: var(--layout-width);
+    width: 100%;
+  }
+
+  
+  .nav-item-p {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.5;
+    color: #212529;
   }
 }
