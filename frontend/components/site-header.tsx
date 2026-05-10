@@ -11,8 +11,10 @@ import { Input } from './ui/input';
 import { Layers, Search } from 'lucide-react';
 export default function SiteHeader({categories}: {categories: CourseCategory[]}){
   const pathname = usePathname()
-  console.log('pathname::', pathname);
+  const isSiteHeaderNeeded = !pathname.includes("/course/")
   const isCategoryNeeded = pathname == "/" || pathname.includes("/courses")
+
+  if(!isSiteHeaderNeeded) return null
 
   const navItems = [
     {id: 'course', title: "강의", src:"/images/course_logo.png", alt:'course'},

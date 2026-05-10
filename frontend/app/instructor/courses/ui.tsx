@@ -78,7 +78,7 @@ export default function UI({ courses }: { courses: Course[] }) {
                   </TableCell>
                   <TableCell>₩{totalRevenue.toLocaleString()}</TableCell>
                   <TableCell>{status}</TableCell>
-                  <TableCell className="flex flex-col gap-2 justify-center h-full">
+                  <TableCell className="flex flex-col gap-2 justify-center h-full items-center">
                     <Button
                       onClick={() => {
                         const confirmed =
