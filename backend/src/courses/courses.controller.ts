@@ -97,10 +97,48 @@ export class CoursesController {
     description: '코스 상세 정보',
     type: CourseEntity
   })
-  findOne(@Param('id', ParseUUIDPipe) id: string, @Query('include') include?: string) {
-    const includeArray = include ? include.split(',') : undefined;
+    // findOne부분 수정
+  findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('include') include?: string,
+  ) {
+    const includeArray = include ? include.split(',').map((item) => item.trim()) : undefined;
 
-    return this.coursesService.findOne(id, includeArray);
+    let includeObject: Prisma.CourseInclude;
+
+    if (
+      includeArray?.includes('sections') &&
+      includeArray?.includes('lectures')
+    ) {
+      const otherInclude = includeArray.filter(
+        (item) => !['sections', 'lectures'].includes(item),
+      );
+      includeObject = {
+        sections: {
+          include: {
+            lectures: {
+              orderBy: {
+                order: 'asc',
+              },
+            },
+          },
+          orderBy: {
+            order: 'asc',
+          },
+        },
+        ...otherInclude.map((item) => ({
+          [item]: true,
+        })),
+      };
+    } else {
+      includeObject = {
+        ...includeArray?.map((item) => ({
+          [item]: true,
+        })),
+      } as Prisma.CourseInclude;
+    }
+
+    return this.coursesService.findOne(id, includeObject);
   }
 
   @Patch(':id')
