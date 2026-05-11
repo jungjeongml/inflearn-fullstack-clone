@@ -9,9 +9,10 @@ import { LecturesModule } from './lectures/lectures.module';
 import { SectionsModule } from './sections/sections.module';
 import { CategoriesModule } from './categories/categories.module';
 import { MediaModule } from './media/media.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({isGlobal: true}), AuthModule, PrismaModule, CoursesModule, LecturesModule, SectionsModule, CategoriesModule, MediaModule],
+  imports: [ConfigModule.forRoot({isGlobal: true}), AuthModule, PrismaModule, CoursesModule, LecturesModule, SectionsModule, CategoriesModule, MediaModule, UsersModule],
   controllers: [AppController],
   providers: [AppService],
 })
