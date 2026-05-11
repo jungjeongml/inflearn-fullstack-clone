@@ -7,23 +7,22 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { Course, Prisma } from '@prisma/client';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
-import slugfy from 'slug'
+import slugify from 'lib/slugify';
 
 @Injectable()
 export class CoursesService {
-  constructor(private prisma: PrismaService) {} 
+  constructor(private prisma: PrismaService) {}
 
   async create(
     userId: string,
     createCourseDto: CreateCourseDto,
   ): Promise<Course> {
-
     return this.prisma.course.create({
       data: {
         title: createCourseDto.title,
-        slug: slugfy(createCourseDto.title),
+        slug: slugify(createCourseDto.title),
         instructorId: userId,
-        status:'DRAFT'
+        status: 'DRAFT',
       },
     });
   }
@@ -46,8 +45,10 @@ export class CoursesService {
     });
   }
 
-  async findOne(id: string, include?: Prisma.CourseInclude): Promise<Course | null> {
-
+  async findOne(
+    id: string,
+    include?: Prisma.CourseInclude,
+  ): Promise<Course | null> {
     const course = await this.prisma.course.findUnique({
       where: { id },
       include,
@@ -69,19 +70,19 @@ export class CoursesService {
       throw new NotFoundException(`ID: ${id} 코스를 찾을 수 없습니다.`);
     }
 
-    const {categoryIds, ...otherData} = updateCourseDto
+    const { categoryIds, ...otherData } = updateCourseDto;
     let data: Prisma.CourseUpdateInput = {
       ...otherData,
-    }
+    };
 
     if (course.instructorId !== userId) {
       throw new UnauthorizedException('강의의 소유자만 수정할 수 있습니다.');
     }
 
-    if(categoryIds && categoryIds.length > 0) {
+    if (categoryIds && categoryIds.length > 0) {
       data.categories = {
-        connect: categoryIds.map((id) => ({id}))
-      }
+        connect: categoryIds.map((id) => ({ id })),
+      };
     }
 
     return this.prisma.course.update({
@@ -107,6 +108,6 @@ export class CoursesService {
       where: { id },
     });
 
-    return course
+    return course;
   }
 }
