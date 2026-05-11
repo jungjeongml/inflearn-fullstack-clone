@@ -3,7 +3,6 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -84,7 +83,7 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
   --layout-x: 32px;
-  --layout-width:1440px;
+  --layout-width: 1440px;
 }
 
 .dark {
@@ -139,7 +138,7 @@
     max-width: var(--layout-width);
     width: 100%;
   }
-  
+
   .nav-item-p {
     font-size: 1rem;
     font-weight: 700;

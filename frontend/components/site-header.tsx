@@ -62,7 +62,7 @@ export default function SiteHeader({
 
   return (
     <header className="site-header w-full">
-      <div className="layout-shell h-[65px] flex items-center">
+      <div className="layout-shell h-[65px] flex items-center mx-auto">
         <div className="header-top w-full flex justify-between">
           <div className="logo">
             <Link href="/">
@@ -114,11 +114,12 @@ export default function SiteHeader({
             </div>
           </div>
           <div className="flex gap-[0.625rem] items-center">
-            <Link href="/instructor">
-              <Button className="font-semibold border-gray-200 hover:border-[#1dc078] hover:text-[#1dc078]">
-                지식공유자
-              </Button>
-            </Link>
+            <Button
+              asChild
+              className="font-semibold border-gray-200 hover:border-[#1dc078] hover:text-[#1dc078]"
+            >
+              <Link href="/instructor">지식공유자</Link>
+            </Button>
             {/* Avatar + Popover or 로그인 버튼 */}
             {session ? (
               <Popover>
@@ -171,14 +172,13 @@ export default function SiteHeader({
                 </PopoverContent>
               </Popover>
             ) : (
-              <Link href="/signin">
-                <Button
-                  variant="outline"
-                  className="font-semibold border-gray-200 hover:border-[#1dc078] hover:text-[#1dc078] ml-2"
-                >
-                  로그인
-                </Button>
-              </Link>
+              <Button
+                asChild
+                variant="outline"
+                className="font-semibold border-gray-200 hover:border-[#1dc078] hover:text-[#1dc078] ml-2"
+              >
+                <Link href="/signin">로그인</Link>
+              </Button>
             )}
           </div>
         </div>
