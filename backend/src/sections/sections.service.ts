@@ -1,36 +1,41 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateSectionDto } from './dto/create-section.dto';
 import { UpdateSectionDto } from './dto/update-section.dto';
 
 @Injectable()
 export class SectionsService {
-  constructor(private readonly prisma: PrismaService){}
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(
     courseId: string,
     createSectionDto: CreateSectionDto,
     userId: string,
-  ){
+  ) {
     const course = await this.prisma.course.findUnique({
       where: {
-        id: courseId
-      }
-    })
+        id: courseId,
+      },
+    });
 
-    if(!course){
-      throw new NotFoundException('코스를 찾을 수 없습니다.')
+    if (!course) {
+      throw new NotFoundException('코스를 찾을 수 없습니다.');
     }
 
-    if(course.instructorId !== userId){
-      throw new UnauthorizedException('이 코스에 섹션을 추가 할 권한이 없습니다')
+    if (course.instructorId !== userId) {
+      throw new UnauthorizedException(
+        '이 코스에 섹션을 추가 할 권한이 없습니다',
+      );
     }
 
-    
     const lastSection = await this.prisma.section.findFirst({
-      where: {courseId},
-      orderBy: {order: 'desc'}
-    })
+      where: { courseId },
+      orderBy: { order: 'desc' },
+    });
 
     const order = lastSection ? lastSection.order + 1 : 0;
 
@@ -40,102 +45,97 @@ export class SectionsService {
         order,
         course: {
           connect: {
-            id: courseId
-          }
-        }
-      }
-    })
+            id: courseId,
+          },
+        },
+      },
+    });
   }
 
-  async findOne(sectionId: string, userId: string){
+  async findOne(sectionId: string, userId: string) {
     const section = await this.prisma.section.findUnique({
-      where: {id: sectionId},
+      where: { id: sectionId },
       include: {
         course: {
           select: {
-            instructorId: true
-          }
+            instructorId: true,
+          },
         },
         lectures: {
-          orderBy: {order: 'asc'}
-        }
-      }
-    })
+          orderBy: { order: 'asc' },
+        },
+      },
+    });
 
-    if(!section){
-      throw new NotFoundException('섹션을 찾을 수 없습니다.')
+    if (!section) {
+      throw new NotFoundException('섹션을 찾을 수 없습니다.');
     }
 
-    if(section.course.instructorId !== userId){
-      throw new UnauthorizedException(
-        '이 섹션을 가져올 권한이 없습니디.'
-      )
+    if (section.course.instructorId !== userId) {
+      throw new UnauthorizedException('이 섹션을 가져올 권한이 없습니디.');
     }
 
-    return section
+    return section;
   }
 
   async update(
     sectionId: string,
     updateSectionDto: UpdateSectionDto,
     userId: string,
-  ){
+  ) {
     const section = await this.prisma.section.findUnique({
       where: {
-        id: sectionId
+        id: sectionId,
       },
       include: {
         course: {
           select: {
-            instructorId: true
-          }
-        }
-      }
-    })
+            instructorId: true,
+          },
+        },
+      },
+    });
 
-    if(!section){
-      throw new NotFoundException('섹션을 찾을 수 없습니다.')
+    if (!section) {
+      throw new NotFoundException('섹션을 찾을 수 없습니다.');
     }
 
-    if(section.course.instructorId !== userId){
+    if (section.course.instructorId !== userId) {
       throw new UnauthorizedException(
-        '이 코스에 섹션을 추가 할 권한이 없습니디.'
-      )
+        '이 코스에 섹션을 추가 할 권한이 없습니디.',
+      );
     }
 
     return this.prisma.section.update({
-      where:{id: sectionId},
+      where: { id: sectionId },
       data: updateSectionDto,
-    })
+    });
   }
 
-  async delete(
-    sectionId: string,
-    userId: string
-  ) {
+  async delete(sectionId: string, userId: string) {
     const section = await this.prisma.section.findUnique({
-      where: {id: sectionId},
+      where: { id: sectionId },
       include: {
         course: {
           select: {
             instructorId: true,
-          }
-        }
-      }
-    })
+          },
+        },
+      },
+    });
 
-    if(!section){
-      throw new NotFoundException('섹션을 찾을 수 없습니다.')
+    if (!section) {
+      throw new NotFoundException('섹션을 찾을 수 없습니다.');
     }
 
-    if(section.course.instructorId !== userId){
-      throw new UnauthorizedException('이 섹션을 삭제할 권한이 없습니다.')
+    if (section.course.instructorId !== userId) {
+      throw new UnauthorizedException('이 섹션을 삭제할 권한이 없습니다.');
     }
 
     await this.prisma.section.delete({
-      where: {id: sectionId}
-    })
+      where: { id: sectionId },
+    });
 
-    return section
+    return section;
   }
 }

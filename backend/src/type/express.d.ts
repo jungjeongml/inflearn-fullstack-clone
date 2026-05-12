@@ -1,4 +1,4 @@
-import {Express} from 'express'
+import { Express } from 'express';
 
 type JwtPayload = {
   sub: string;

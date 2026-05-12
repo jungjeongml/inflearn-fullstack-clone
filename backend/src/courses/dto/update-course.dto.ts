@@ -11,16 +11,15 @@ import {
 } from 'class-validator';
 
 export class UpdateCourseDto extends PartialType(CreateCourseDto) {
-
   @ApiProperty({ description: '코스 1~2줄 짧은 설명', required: false })
   @IsString()
   @IsOptional()
   shortDescription?: string;
 
-  @ApiProperty({description: '코스 상태', required: false})
+  @ApiProperty({ description: '코스 상태', required: false })
   @IsString()
   @IsOptional()
-  status?: string
+  status?: string;
 
   @ApiProperty({ description: '코스 상세페이지 설명', required: false })
   @IsString()

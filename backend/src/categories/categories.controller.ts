@@ -9,13 +9,13 @@ export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @Get('')
-  @ApiOperation({summary: '카테고리 리스트'})
+  @ApiOperation({ summary: '카테고리 리스트' })
   @ApiOkResponse({
     description: '카테고리를 성공적으로 가져옴',
     type: CourseCategoryEntity,
-    isArray: true
+    isArray: true,
   })
-  findAll(){
-    return this.categoriesService.findAll()
+  findAll() {
+    return this.categoriesService.findAll();
   }
 }
