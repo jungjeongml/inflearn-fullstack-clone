@@ -10,13 +10,13 @@ export const metadata: Metadata = {
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page_number?: string }>;
 }) {
-  const { page } = await searchParams;
+  const { page_number } = await searchParams;
 
   return (
     <div className="p-6">
-      <CourseList q={""} page={page ? parseInt(page, 10) : 1} />
+      <CourseList q={""} page={page_number ? parseInt(page_number, 10) : 1} />
     </div>
   );
 }

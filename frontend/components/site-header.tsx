@@ -3,7 +3,7 @@
 import { CourseCategory, User } from "@/generated/openapi-client";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Input } from "./ui/input";
@@ -13,7 +13,7 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
-import React from "react";
+import React, { useState } from "react";
 import { CATEGORY_ICONS } from "@/app/constants/category-icons";
 import { Session } from "next-auth";
 import { signOut } from "next-auth/react";
@@ -30,8 +30,21 @@ export default function SiteHeader({
   const pathname = usePathname();
   const isSiteHeaderNeeded = !pathname.includes("/course/");
   const isCategoryNeeded = pathname == "/" || pathname.includes("/courses");
+  const [search, setSearch] = useState("");
+  const router = useRouter();
 
   if (!isSiteHeaderNeeded) return null;
+
+  const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const keyword = search.trim();
+
+    if (!keyword) return;
+
+    const params = new URLSearchParams({ q: keyword });
+    router.push(`/search?${params.toString()}`);
+  };
 
   const navItems = [
     {
@@ -95,15 +108,17 @@ export default function SiteHeader({
               ))}
             </nav>
             <div>
-              <form action="">
+              <form onSubmit={handleSearchSubmit}>
                 <div className="relative flex w-full items-center">
                   <Input
                     type="text"
                     placeholder="나의 진짜 성장을 도와줄 실무 강의를 찾아보세요"
                     className="w-full bg-gray-50 border-gray-200 focus-visible:ring-[#1dc078] pr-10"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
                   />
                   <button
-                    type="button"
+                    type="submit"
                     className="absolute right-2 p-1 text-gray-400 hover:text-[#1dc078] transition-colors"
                     tabIndex={-1}
                   >
