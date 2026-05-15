@@ -4,7 +4,8 @@ import {
   categoriesControllerFindAll,
   coursesControllerAddFavorite,
   coursesControllerCreate,
-  coursesControllerFindAll,
+  coursesControllerEnrollCourse,
+  coursesControllerFindAllMyCourse,
   coursesControllerFindOne,
   coursesControllerGetFavorite,
   coursesControllerGetMyFavorites,
@@ -36,7 +37,7 @@ export const getAllCategories = async () => {
 };
 
 export const getAllInstructorCourses = async () => {
-  const { data, error } = await coursesControllerFindAll();
+  const { data, error } = await coursesControllerFindAllMyCourse();
 
   return { data, error };
 };
@@ -213,5 +214,14 @@ export const getFavorite = async (courseId: string) => {
 export const getMyFavorites = async () => {
   const { data, error } = await coursesControllerGetMyFavorites();
 
+  return { data, error };
+};
+
+export const enrollCourse = async (courseId: string) => {
+  const { data, error } = await coursesControllerEnrollCourse({
+    path: {
+      id: courseId,
+    },
+  });
   return { data, error };
 };

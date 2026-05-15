@@ -48,43 +48,21 @@ export class CoursesController {
   }
 
   @Get()
-  @ApiQuery({ name: 'title', required: false })
-  @ApiQuery({ name: 'level', required: false })
-  @ApiQuery({ name: 'categoryId', required: false })
   @ApiQuery({ name: 'skip', required: false })
   @ApiQuery({ name: 'take', required: false })
+  @UseGuards(AccessTokenGuard)
   @ApiOkResponse({
     description: '코스 목록',
     type: CourseEntity,
     isArray: true,
   })
-  findAll(
-    @Query('title') title?: string,
-    @Query('level') level?: string,
-    @Query('categoryId') categoryId?: string,
+  findAllMyCourse(
+    @Req() req: Request,
     @Query('skip') skip?: string,
     @Query('take') take?: string,
   ) {
-    const where: Prisma.CourseWhereInput = {};
-
-    if (title) {
-      where.title = { contains: title, mode: 'insensitive' };
-    }
-
-    if (level) {
-      where.level = level;
-    }
-
-    if (categoryId) {
-      where.categories = {
-        some: {
-          id: categoryId,
-        },
-      };
-    }
-
     return this.coursesService.findAll({
-      where,
+      where: { instructorId: req.user!.sub },
       skip: skip ? parseInt(skip) : undefined,
       take: take ? parseInt(take) : undefined,
       orderBy: {
@@ -94,13 +72,15 @@ export class CoursesController {
   }
 
   @Get(':id')
+  @UseGuards(OptionalAccessTokenGuard)
+  @ApiBearerAuth('access-token')
   @ApiOkResponse({
     description: '코스 상세 정보',
     type: CourseDetailDto,
   })
   // findOne부분 수정
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.coursesService.findOne(id);
+  findOne(@Req() req: Request, @Param('id', ParseUUIDPipe) id: string) {
+    return this.coursesService.findOne(id, req.user?.sub);
   }
 
   @Patch(':id')
@@ -178,5 +158,15 @@ export class CoursesController {
   })
   getFavorite(@Param('id', ParseUUIDPipe) id: string, @Req() req: Request) {
     return this.coursesService.getFavorite(id, req.user?.sub);
+  }
+
+  @Post(':id/enroll')
+  @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOkResponse({
+    type: Boolean,
+  })
+  enrollCourse(@Param('id', ParseUUIDPipe) id: string, @Req() req: Request) {
+    return this.coursesService.enrollCourse(id, req.user!.sub);
   }
 }
