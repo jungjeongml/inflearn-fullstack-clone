@@ -395,14 +395,17 @@ function InstructorSection({
 }
 
 function CurriculumSection({
+  courseId,
   sections,
   totalLectures,
   totalDurationText,
 }: {
+  courseId: string;
   sections: SectionEntity[];
   totalLectures: number;
   totalDurationText: string;
 }) {
+  const router = useRouter();
   return (
     <section>
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
@@ -448,8 +451,13 @@ function CurriculumSection({
                 <div className="divide-y divide-gray-100 rounded-md bg-gray-50">
                   {lectures.map((lecture) => (
                     <div
+                      onClick={() => {
+                        router.push(
+                          `/courses/lecture?courseId=${courseId}&lectureId=${lecture.id}`,
+                        );
+                      }}
                       key={lecture.id}
-                      className="flex items-center justify-between gap-4 px-4 py-3"
+                      className={`flex items-center justify-between gap-4 px-4 py-3 ${lecture.videoStorageInfo && "cursor-pointer"}`}
                     >
                       <div className="flex min-w-0 items-center gap-3">
                         {lecture.isPreview ? (
@@ -457,7 +465,9 @@ function CurriculumSection({
                         ) : (
                           <Lock className="size-4 shrink-0 text-gray-400" />
                         )}
-                        <span className="truncate text-sm text-gray-800">
+                        <span
+                          className={`truncate text-sm text-gray-800 ${lecture.videoStorageInfo && "underline"}`}
+                        >
                           {lecture.order}. {lecture.title}
                         </span>
                       </div>
@@ -468,9 +478,6 @@ function CurriculumSection({
                             variant="outline"
                             size="xs"
                             className="inline-flex h-7 items-center justify-center border-[#00c471] px-2.5 text-[#00a85f] hover:text-[#00a85f]"
-                            onClick={() =>
-                              alert("미리보기 기능은 구현 예정입니다.")
-                            }
                           >
                             <span className="flex h-full translate-y-[0.5px] items-center text-[13px] font-bold leading-none">
                               미리보기
@@ -910,6 +917,7 @@ export default function UI({
             instructorBioRest={instructorBioRest}
           />
           <CurriculumSection
+            courseId={course.id}
             sections={sections}
             totalLectures={course.totalLectures}
             totalDurationText={totalDurationText}

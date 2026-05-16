@@ -38,6 +38,7 @@
     "react-dom": "19.1.0",
     "react-dropzone": "^15.0.0",
     "react-hook-form": "^7.75.0",
+    "react-player": "^3.4.0",
     "react-resizable-panels": "^4.10.0",
     "recharts": "3.8.0",
     "shadcn": "^4.5.0",
