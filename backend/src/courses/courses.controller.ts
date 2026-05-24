@@ -17,7 +17,6 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { Prisma } from '@prisma/client';
 import type { Request } from 'express';
 import { Course as CourseEntity } from 'src/_gen/prisma-class/course';
 import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
@@ -30,6 +29,7 @@ import { UpdateCourseDto } from './dto/update-course.dto';
 import { OptionalAccessTokenGuard } from 'src/auth/guards/optional-access-token.guard';
 import { CourseFavorite as CourseFavoriteEntity } from 'src/_gen/prisma-class/course_favorite';
 import { GetFavoriteResponseDto } from './dto/favorite.dto';
+import { LectureActivity as LectureActivityEntity } from 'src/_gen/prisma-class/lecture_activity';
 
 @ApiTags('코스')
 @Controller('courses')
@@ -51,6 +51,7 @@ export class CoursesController {
   @ApiQuery({ name: 'skip', required: false })
   @ApiQuery({ name: 'take', required: false })
   @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth('access-token')
   @ApiOkResponse({
     description: '코스 목록',
     type: CourseEntity,
@@ -168,5 +169,17 @@ export class CoursesController {
   })
   enrollCourse(@Param('id', ParseUUIDPipe) id: string, @Req() req: Request) {
     return this.coursesService.enrollCourse(id, req.user!.sub);
+  }
+
+  @Get(':courseId/activity')
+  @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOkResponse({
+    description: '개별 강의 활동 이벤트 조회',
+    type: LectureActivityEntity,
+    isArray: true,
+  })
+  getLectureActivity(@Req() req: Request, @Param('courseId') courseId: string) {
+    return this.coursesService.getAllLectureActivities(courseId, req.user!.sub);
   }
 }

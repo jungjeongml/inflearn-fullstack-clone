@@ -14,7 +14,13 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Course } from "@/generated/openapi-client";
 
-export default function UI({ courses }: { courses: Course[] }) {
+export default function UI({
+  courses,
+  errorMessage,
+}: {
+  courses: Course[];
+  errorMessage?: string;
+}) {
   const router = useRouter();
 
   return (
@@ -35,7 +41,13 @@ export default function UI({ courses }: { courses: Course[] }) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {courses && courses.length > 0 ? (
+          {errorMessage ? (
+            <TableRow>
+              <TableCell colSpan={9} className="text-center text-red-500">
+                {errorMessage}
+              </TableCell>
+            </TableRow>
+          ) : courses && courses.length > 0 ? (
             courses.map((course: Course) => {
               const avgRating = 0;
               const totalStudents = 0;

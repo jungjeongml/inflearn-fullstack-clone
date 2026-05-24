@@ -12,7 +12,7 @@ export default function InctructorPageName(){
       case "/instructor":
         setTitle("대시보드")
         break;
-      case "/inctructor/courses":
+      case "/instructor/courses":
         setTitle("강의 관리")
         break;
       default: 

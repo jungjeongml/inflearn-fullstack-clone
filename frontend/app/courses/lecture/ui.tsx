@@ -1,33 +1,25 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ComponentType, SyntheticEvent } from "react";
+import type { ComponentType } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Check,
-  CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
   ListChecks,
-  Maximize,
   MessageCircleQuestion,
   NotebookTabs,
-  Pause,
-  Play,
   RotateCcw,
   Search,
   Share2,
   Smile,
   Star,
   Subtitles,
-  Volume2,
-  VolumeX,
   X,
 } from "lucide-react";
 import type {
   CourseDetailDto,
+  LectureActivity as LectureActivityEntity,
   Lecture as LectureEntity,
   Section as SectionEntity,
 } from "@/generated/openapi-client";
@@ -35,8 +27,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-const ReactPlayer = dynamic(() => import("react-player"), { ssr: false });
+import { VideoPlayer } from "./_components/video-player";
 
 type StorageInfo = {
   cloudFront?: {
@@ -58,23 +49,29 @@ const SIDE_MENU_ITEMS: MenuItem[] = [
   { label: "스크립트", icon: Subtitles, action: "planned" },
 ];
 
+const CURRICULUM_OPEN_STORAGE_KEY = "lecture:isCurriculumOpen";
+
 export default function UI({
   course,
   lectureId,
+  lectureActivities,
 }: {
   course: CourseDetailDto;
   lectureId?: string;
+  lectureActivities: LectureActivityEntity[];
 }) {
   const router = useRouter();
+  const playerSectionRef = useRef<HTMLElement | null>(null);
   const [isCurriculumOpen, setIsCurriculumOpen] = useState(true);
-  const playerRef = useRef<HTMLVideoElement | null>(null);
-  const playerShellRef = useRef<HTMLDivElement | null>(null);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [isMuted, setIsMuted] = useState(true);
-  const [volume, setVolume] = useState(0.8);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [playbackRate, setPlaybackRate] = useState(1);
+  const currentLectureId = lectureId ?? course.sections[0].lectures[0].id;
+
+  useEffect(() => {
+    const savedValue = localStorage.getItem(CURRICULUM_OPEN_STORAGE_KEY);
+
+    if (savedValue === null) return;
+
+    setIsCurriculumOpen(savedValue === "true");
+  }, []);
 
   const sections = useMemo(() => sortSections(course.sections ?? []), [course]);
   const lectures = useMemo(() => {
@@ -94,9 +91,9 @@ export default function UI({
       : sortLectures(course.lectures ?? []);
   }, [course.lectures, sections]);
   const currentLecture =
-    lectures.find((lecture) => lecture.id === lectureId) ?? lectures[0];
+    lectures.find((lecture) => lecture.id === currentLectureId) ?? lectures[0];
   const currentIndex = currentLecture
-    ? lectures.findIndex((lecture) => lecture.id === currentLecture.id)
+    ? lectures.findIndex((lecture) => lecture.id === currentLectureId)
     : -1;
   const previousLecture = currentIndex > 0 ? lectures[currentIndex - 1] : null;
   const nextLecture =
@@ -104,29 +101,9 @@ export default function UI({
       ? lectures[currentIndex + 1]
       : null;
   const videoUrl = getVideoUrl(currentLecture);
-
-  useEffect(() => {
-    if (!playerRef.current) return;
-
-    playerRef.current.volume = volume;
-    playerRef.current.muted = isMuted;
-    playerRef.current.playbackRate = playbackRate;
-  }, [isMuted, playbackRate, volume]);
-
-  useEffect(() => {
-    const player = playerRef.current;
-    if (!player) return;
-
-    if (isPlaying) {
-      void player.play().catch((error: unknown) => {
-        if (isAbortError(error)) return;
-        console.error(error);
-      });
-      return;
-    }
-
-    player.pause();
-  }, [isPlaying, videoUrl]);
+  const currentLectureActivity = lectureActivities.find(
+    (activity) => activity.lectureId === currentLectureId,
+  );
 
   const goToLecture = (lecture?: LectureEntity | null) => {
     if (!lecture) return;
@@ -135,58 +112,18 @@ export default function UI({
     );
   };
 
+  const updateCurriculumOpen = (nextValue: boolean) => {
+    setIsCurriculumOpen(nextValue);
+    localStorage.setItem(CURRICULUM_OPEN_STORAGE_KEY, String(nextValue));
+  };
+
   const handleMenuClick = (item: MenuItem) => {
     if (item.action === "curriculum") {
-      setIsCurriculumOpen(true);
+      updateCurriculumOpen(true);
       return;
     }
 
     alert("구현 예정");
-  };
-
-  const updateDuration = () => {
-    const player = playerRef.current;
-    if (!player || Number.isNaN(player.duration)) return;
-    setDuration(player.duration);
-  };
-
-  const playPlayer = (player: HTMLVideoElement) => {
-    void player.play().catch((error: unknown) => {
-      if (isAbortError(error)) return;
-      console.error(error);
-    });
-  };
-
-  const handleLoadedMetadata = (event: SyntheticEvent<HTMLVideoElement>) => {
-    updateDuration();
-
-    if (isPlaying) {
-      playPlayer(event.currentTarget);
-    }
-  };
-
-  const togglePlay = () => {
-    const player = playerRef.current;
-    if (!player) return;
-
-    setIsPlaying(player.paused);
-  };
-
-  const seekTo = (seconds: number) => {
-    const player = playerRef.current;
-    if (!player) return;
-
-    player.currentTime = seconds;
-    setCurrentTime(seconds);
-  };
-
-  const changeVolume = (nextVolume: number) => {
-    setVolume(nextVolume);
-    setIsMuted(nextVolume === 0);
-  };
-
-  const toggleFullscreen = () => {
-    void playerShellRef.current?.requestFullscreen?.();
   };
 
   return (
@@ -199,7 +136,10 @@ export default function UI({
             : "grid-cols-1",
         )}
       >
-        <section className="group/player relative flex min-w-0 flex-col bg-[#131314]">
+        <section
+          ref={playerSectionRef}
+          className="group/player relative flex min-w-0 flex-col bg-[#131314]"
+        >
           <header className="absolute left-0 right-0 top-0 z-20 flex h-14 items-center justify-between bg-gradient-to-b from-black/55 to-transparent px-4">
             <div className="flex flex-1 h-full min-w-0 items-center">
               <Button
@@ -236,58 +176,15 @@ export default function UI({
             </div>
           </header>
 
-          <div
-            ref={playerShellRef}
-            className="relative box-border flex min-h-0 flex-1 flex-col bg-[#111416]"
-          >
-            {videoUrl ? (
-              <>
-                <div className="relative flex min-h-0 flex-1 basis-0 items-center justify-center overflow-hidden">
-                  <ReactPlayer
-                    ref={playerRef}
-                    className="lecture-react-player"
-                    src={videoUrl}
-                    autoPlay
-                    controls={false}
-                    muted={isMuted}
-                    playsInline
-                    width="100%"
-                    height="100%"
-                    style={{ backgroundColor: "#111416" }}
-                    onDurationChange={updateDuration}
-                    onLoadedMetadata={handleLoadedMetadata}
-                    onPause={() => setIsPlaying(false)}
-                    onPlay={() => setIsPlaying(true)}
-                    onTimeUpdate={(event) =>
-                      setCurrentTime(event.currentTarget.currentTime)
-                    }
-                  />
-                </div>
-                <PlayerControls
-                  currentTime={currentTime}
-                  duration={duration}
-                  isMuted={isMuted}
-                  isPlaying={isPlaying}
-                  playbackRate={playbackRate}
-                  volume={volume}
-                  previousLecture={previousLecture}
-                  nextLecture={nextLecture}
-                  onComplete={() => alert("구현 예정")}
-                  onFullscreen={toggleFullscreen}
-                  onLectureChange={goToLecture}
-                  onPlaybackRateChange={setPlaybackRate}
-                  onSeek={seekTo}
-                  onToggleMuted={() => setIsMuted((prev) => !prev)}
-                  onTogglePlay={togglePlay}
-                  onVolumeChange={changeVolume}
-                />
-              </>
-            ) : (
-              <div className="flex h-full w-full flex-1 items-center justify-center px-6 text-center text-sm text-zinc-400">
-                재생할 강의 영상이 없습니다.
-              </div>
-            )}
-          </div>
+          <VideoPlayer
+            videoUrl={videoUrl}
+            previousLecture={previousLecture}
+            nextLecture={nextLecture}
+            onLectureChange={goToLecture}
+            lecture={currentLecture}
+            lectureActivity={currentLectureActivity}
+            fullscreenTargetRef={playerSectionRef}
+          />
 
           {!isCurriculumOpen && (
             <CollapsedSideMenu
@@ -303,7 +200,7 @@ export default function UI({
               course={course}
               sections={sections}
               currentLectureId={currentLecture?.id}
-              onClose={() => setIsCurriculumOpen(false)}
+              onClose={() => updateCurriculumOpen(false)}
               onLectureClick={goToLecture}
             />
             <ExpandedSideRail onItemClick={handleMenuClick} />
@@ -311,171 +208,6 @@ export default function UI({
         )}
       </div>
     </main>
-  );
-}
-
-function PlayerControls({
-  currentTime,
-  duration,
-  isMuted,
-  isPlaying,
-  nextLecture,
-  playbackRate,
-  previousLecture,
-  volume,
-  onComplete,
-  onFullscreen,
-  onLectureChange,
-  onPlaybackRateChange,
-  onSeek,
-  onToggleMuted,
-  onTogglePlay,
-  onVolumeChange,
-}: {
-  currentTime: number;
-  duration: number;
-  isMuted: boolean;
-  isPlaying: boolean;
-  nextLecture: LectureEntity | null;
-  playbackRate: number;
-  previousLecture: LectureEntity | null;
-  volume: number;
-  onComplete: () => void;
-  onFullscreen: () => void;
-  onLectureChange: (lecture?: LectureEntity | null) => void;
-  onPlaybackRateChange: (rate: number) => void;
-  onSeek: (seconds: number) => void;
-  onToggleMuted: () => void;
-  onTogglePlay: () => void;
-  onVolumeChange: (volume: number) => void;
-}) {
-  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
-
-  return (
-    <div className="relative z-30 shrink-0 bg-[#111416] px-4 pb-3 pt-2 shadow-[0_-12px_28px_rgba(0,0,0,0.28)]">
-      <input
-        type="range"
-        min={0}
-        max={duration || 0}
-        step={0.1}
-        value={Math.min(currentTime, duration || currentTime)}
-        className="lecture-progress-range h-1.5 w-full cursor-pointer"
-        style={{
-          background: `linear-gradient(to right, var(--primary) ${progress}%, rgba(255,255,255,0.35) ${progress}%)`,
-        }}
-        onChange={(event) => onSeek(Number(event.target.value))}
-        aria-label="재생 위치"
-      />
-
-      <div className="mt-3 flex items-center justify-between gap-4 text-white">
-        <div className="flex min-w-0 items-center gap-3">
-          <button
-            type="button"
-            className="flex size-8 items-center justify-center rounded-full hover:bg-white/15"
-            onClick={onTogglePlay}
-            aria-label={isPlaying ? "일시정지" : "재생"}
-          >
-            {isPlaying ? (
-              <Pause className="size-5 fill-white" />
-            ) : (
-              <Play className="size-5 fill-white" />
-            )}
-          </button>
-
-          <button
-            type="button"
-            className="flex size-8 items-center justify-center rounded-full hover:bg-white/15"
-            onClick={onToggleMuted}
-            aria-label={isMuted ? "음소거 해제" : "음소거"}
-          >
-            {isMuted || volume === 0 ? (
-              <VolumeX className="size-5" />
-            ) : (
-              <Volume2 className="size-5" />
-            )}
-          </button>
-
-          <input
-            type="range"
-            min={0}
-            max={1}
-            step={0.01}
-            value={isMuted ? 0 : volume}
-            className="lecture-volume-range h-1.5 w-24 cursor-pointer"
-            onChange={(event) => onVolumeChange(Number(event.target.value))}
-            aria-label="음량"
-          />
-
-          <span className="w-28 text-xs tabular-nums text-white/85">
-            {formatPlayerTime(currentTime)} / {formatPlayerTime(duration)}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <select
-            value={playbackRate}
-            className="h-8 rounded-md border border-white/15 bg-black/40 px-2 text-xs font-semibold text-white outline-none hover:bg-white/10"
-            onChange={(event) =>
-              onPlaybackRateChange(Number(event.target.value))
-            }
-            aria-label="재생 속도"
-          >
-            {[0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map((rate) => (
-              <option
-                key={rate}
-                value={rate}
-                className="bg-zinc-950 text-white"
-              >
-                {rate}x
-              </option>
-            ))}
-          </select>
-
-          <button
-            type="button"
-            className="flex size-8 items-center justify-center rounded-full hover:bg-white/15"
-            onClick={onFullscreen}
-            aria-label="전체 화면"
-          >
-            <Maximize className="size-5" />
-          </button>
-        </div>
-      </div>
-
-      <div className="mt-3 flex items-center justify-center gap-2">
-        <Button
-          type="button"
-          size="sm"
-          variant="secondary"
-          className="h-8 rounded-full border border-white/10 bg-[#272b31] px-4 text-white hover:bg-[#333841] hover:text-white"
-          onClick={() => onLectureChange(previousLecture)}
-          disabled={!previousLecture}
-        >
-          <ChevronLeft className="size-4" />
-          이전
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant="secondary"
-          className="h-8 rounded-full border border-white/10 bg-[#272b31] px-4 text-white hover:bg-[#333841] hover:text-white"
-          onClick={() => onLectureChange(nextLecture)}
-          disabled={!nextLecture}
-        >
-          다음
-          <ChevronRight className="size-4" />
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          className="h-8 rounded-full bg-emerald-600/40 px-4 text-emerald-100 hover:bg-emerald-600/55"
-          onClick={onComplete}
-        >
-          <CheckCircle2 className="size-4 fill-emerald-500 text-emerald-200" />
-          봤어요
-        </Button>
-      </div>
-    </div>
   );
 }
 
@@ -714,31 +446,10 @@ function tryParseStorageInfo(value: string) {
   }
 }
 
-function isAbortError(error: unknown) {
-  return error instanceof DOMException && error.name === "AbortError";
-}
-
 function formatCompactDuration(seconds?: number) {
   const totalSeconds = seconds ?? 0;
   const minutes = Math.floor(totalSeconds / 60);
   const remainingSeconds = totalSeconds % 60;
-
-  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
-}
-
-function formatPlayerTime(seconds: number) {
-  if (!Number.isFinite(seconds)) return "0:00";
-
-  const totalSeconds = Math.floor(seconds);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const remainingSeconds = totalSeconds % 60;
-
-  if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, "0")}:${remainingSeconds
-      .toString()
-      .padStart(2, "0")}`;
-  }
 
   return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 }

@@ -8,6 +8,7 @@ import {
   coursesControllerFindAllMyCourse,
   coursesControllerFindOne,
   coursesControllerGetFavorite,
+  coursesControllerGetLectureActivity,
   coursesControllerGetMyFavorites,
   coursesControllerRemoveFavorite,
   coursesControllerSearch,
@@ -15,12 +16,14 @@ import {
   lecturesControllerCreate,
   lecturesControllerDelete,
   lecturesControllerUpdate,
+  lecturesControllerUpdateLectureActivity,
   mediaControllerUploadMedia,
   SearchCourseDto,
   sectionsControllerCreate,
   sectionsControllerDelete,
   sectionsControllerUpdate,
   UpdateCourseDto,
+  UpdateLectureActivityDto,
   UpdateLectureDto,
   UpdateUserDto,
   usersControllerGetProfile,
@@ -37,7 +40,10 @@ export const getAllCategories = async () => {
 };
 
 export const getAllInstructorCourses = async () => {
-  const { data, error } = await coursesControllerFindAllMyCourse();
+  const { data, error } = await coursesControllerFindAllMyCourse({
+    cache: "no-store",
+    security: [{ scheme: "bearer", type: "http" }],
+  });
 
   return { data, error };
 };
@@ -223,5 +229,29 @@ export const enrollCourse = async (courseId: string) => {
       id: courseId,
     },
   });
+  return { data, error };
+};
+
+export const updateLectureActivity = async (
+  lectureId: string,
+  updateLectureActivityDto: UpdateLectureActivityDto,
+) => {
+  const { data, error } = await lecturesControllerUpdateLectureActivity({
+    path: {
+      lectureId,
+    },
+    body: updateLectureActivityDto,
+  });
+
+  return { data, error };
+};
+
+export const getAllLectureActivities = async (courseId: string) => {
+  const { data, error } = await coursesControllerGetLectureActivity({
+    path: {
+      courseId,
+    },
+  });
+
   return { data, error };
 };

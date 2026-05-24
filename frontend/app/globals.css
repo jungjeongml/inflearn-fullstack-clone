@@ -157,17 +157,19 @@
     background-color: var(--primary);
   }
 
-  .lecture-react-player video {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
-
   .lecture-progress-range,
   .lecture-volume-range {
     appearance: none;
     border-radius: 9999px;
     outline: none;
+  }
+
+  video.lecture-react-player,
+  .lecture-react-player video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
   }
 
   .lecture-progress-range::-webkit-slider-thumb,
@@ -190,7 +192,6 @@
   }
 
   .lecture-volume-range {
-    background: rgb(255 255 255 / 35%);
     accent-color: var(--primary);
   }
 }
