@@ -1,73 +1,70 @@
-'use client'
+"use client";
 
-import { Button } from '@/components/ui/button';
-import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 const sidebarItems = [
   {
     label: "대시보드",
-    href: "/instructor"
+    href: "/instructor",
   },
   {
     label: "새 강의 만들기",
-    href: "/create_courses"
+    href: "/create_courses",
   },
   {
     label: "강의 관리",
-    href: "/instructor/courses"
+    href: "/instructor/courses",
   },
   {
     label: "미션 관리",
-    href: "/instructor#"
+    href: "/instructor#",
   },
   {
     label: "멘토링 관리",
-    href: "/instructor#"
-  }
-  ,
+    href: "/instructor#",
+  },
   {
     label: "강의 질문 관리",
-    href: "/instructor#"
-  }
-  ,
+    href: "/instructor#",
+  },
   {
     label: "수강평 리스트",
-    href: "/instructor#"
+    href: "/instructor/reviews",
   },
   {
     label: "새소식 관리",
-    href: "/instructor#"
+    href: "/instructor#",
   },
   {
     label: "수익 확인",
-    href: "/instructor#"
+    href: "/instructor#",
   },
   {
     label: "쿠폰 관리",
-    href: "/instructor#"
+    href: "/instructor#",
   },
   {
     label: "수강전 문의 관리",
-    href: "/instructor#"
+    href: "/instructor#",
   },
   {
     label: "로드맵 관리",
-    href: "/instructor#"
+    href: "/instructor#",
   },
   {
     label: "지식공유자 가이드",
-    href: "/instructor#"
-  }
-]
+    href: "/instructor#",
+  },
+];
 
-
-export default function InstructorSidebar(){
+export default function InstructorSidebar() {
   const pathname = usePathname();
-  const [selectedTab, setSelectedTab] = useState("")
+  const [selectedTab, setSelectedTab] = useState("");
   const alertPreparing = () => {
-    alert("준비중입니다.")
-  }
+    alert("준비중입니다.");
+  };
   return (
     <aside className="w-full max-w-[260px] flex flex-col gap-2 p-4 border-r bg-white min-h-screen">
       {sidebarItems.map((item) => {
