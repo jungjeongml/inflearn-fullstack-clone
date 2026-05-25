@@ -129,6 +129,7 @@
   }
   html {
     @apply font-sans;
+    scrollbar-gutter: stable;
   }
 }
 
@@ -194,4 +195,23 @@
   .lecture-volume-range {
     accent-color: var(--primary);
   }
+}
+
+html body[data-scroll-locked] {
+  margin: 0 auto !important;
+  padding-left: 0 !important;
+  padding-top: 0 !important;
+  padding-right: 0 !important;
+}
+
+html .with-scroll-bars-hidden {
+  padding-right: 0 !important;
+}
+
+html .width-before-scroll-bar {
+  margin-right: 0 !important;
+}
+
+html .right-scroll-bar-position {
+  right: 0 !important;
 }

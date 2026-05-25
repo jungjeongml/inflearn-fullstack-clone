@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VideoPlayer } from "./_components/video-player";
+import { User } from "next-auth";
 
 type StorageInfo = {
   cloudFront?: {
@@ -55,10 +56,12 @@ export default function UI({
   course,
   lectureId,
   lectureActivities,
+  user,
 }: {
   course: CourseDetailDto;
   lectureId?: string;
   lectureActivities: LectureActivityEntity[];
+  user?: User;
 }) {
   const router = useRouter();
   const playerSectionRef = useRef<HTMLElement | null>(null);
@@ -184,6 +187,8 @@ export default function UI({
             lecture={currentLecture}
             lectureActivity={currentLectureActivity}
             fullscreenTargetRef={playerSectionRef}
+            courseId={course.id}
+            user={user}
           />
 
           {!isCurriculumOpen && (

@@ -8,11 +8,14 @@ import {
   ChevronLeft,
   ChevronRight,
   Maximize,
+  MessageSquareIcon,
   Minimize,
   Pause,
   Play,
   Volume2,
   VolumeX,
+  StarIcon,
+  Loader2,
 } from "lucide-react";
 import {
   Lecture as LectureEntity,
@@ -23,9 +26,155 @@ import { Button } from "@/components/ui/button";
 import { useMutation } from "@tanstack/react-query";
 import * as api from "@/lib/api";
 import { cn } from "@/lib/utils";
+import type { User } from "next-auth";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 // ReactPlayer는 브라우저 API를 사용하므로 서버 렌더링에서는 제외합니다.
 const ReactPlayer = dynamic(() => import("react-player"), { ssr: false });
+
+function InteractiveStarRating({
+  rating,
+  onRatingChange,
+}: {
+  rating: number;
+  onRatingChange: (rating: number) => void;
+}) {
+  const [hoverRating, setHoverRating] = useState(0);
+
+  return (
+    <div className="flex items-center gap-1">
+      {Array.from({ length: 5 }).map((_, i) => {
+        const starValue = i + 1;
+        const isActive = starValue <= (hoverRating || rating);
+
+        return (
+          <button
+            key={i}
+            type="button"
+            onClick={() => onRatingChange(starValue)}
+            onMouseEnter={() => setHoverRating(starValue)}
+            onMouseLeave={() => setHoverRating(0)}
+            className="p-1 transition-colors"
+          >
+            <StarIcon
+              className={cn(
+                "size-8 transition-colors",
+                isActive
+                  ? "fill-yellow-400 stroke-yellow-400"
+                  : "stroke-gray-300 hover:stroke-yellow-400",
+              )}
+            />
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function ReviewModal({
+  courseId,
+  isOpen,
+  onClose,
+  setShowReviewModal,
+}: {
+  courseId: string;
+  isOpen: boolean;
+  onClose: () => void;
+  setShowReviewModal: (show: boolean) => void;
+}) {
+  const [rating, setRating] = useState(0);
+  const [content, setContent] = useState("");
+
+  useEffect(() => {
+    if (isOpen) {
+      setRating(0);
+      setContent("");
+    }
+  }, [isOpen]);
+
+  const createReviewMutation = useMutation({
+    mutationFn: () =>
+      api.createReview(courseId, {
+        content,
+        rating,
+      }),
+    onSuccess: () => {
+      toast.success("수강평이 등록되었습니다.");
+      setShowReviewModal(false);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "수강평 등록에 실패했습니다.");
+    },
+  });
+
+  const handleSubmit = () => {
+    if (rating === 0) {
+      alert("별점을 선택해주세요.");
+      return;
+    }
+    if (!content.trim()) {
+      alert("수강평을 작성해주세요.");
+      return;
+    }
+
+    createReviewMutation.mutate();
+  };
+
+  const isLoading = createReviewMutation.isPending;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-center text-lg font-semibold">
+            힘이 되는 수강평을 남겨주세요!
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-6 py-4">
+          <div className="flex justify-center">
+            <InteractiveStarRating rating={rating} onRatingChange={setRating} />
+          </div>
+
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="수강평을 작성해보세요!"
+            className="w-full h-32 p-3 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          />
+        </div>
+
+        <DialogFooter className="flex gap-2">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+          >
+            취소
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors disabled:opacity-50"
+          >
+            {isLoading ? (
+              <Loader2 size={20} className="animate-spin" />
+            ) : (
+              <span>저장하기</span>
+            )}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 // 강의 영상 재생 화면과 커스텀 컨트롤을 한 곳에서 관리하는 컴포넌트입니다.
 export function VideoPlayer({
@@ -36,6 +185,8 @@ export function VideoPlayer({
   lecture,
   lectureActivity,
   fullscreenTargetRef,
+  courseId,
+  user,
 }: {
   videoUrl?: string;
   previousLecture: LectureEntity | null;
@@ -44,6 +195,8 @@ export function VideoPlayer({
   lecture: LectureEntity;
   lectureActivity?: LectureActivityEntity;
   fullscreenTargetRef?: RefObject<HTMLElement | null>;
+  courseId: string;
+  user?: User;
 }) {
   const updateLectureActivityMutation = useMutation({
     mutationFn: (updateLectureActivityDto: UpdateLectureActivityDto) =>
@@ -331,6 +484,8 @@ export function VideoPlayer({
             onToggleMuted={() => setIsMuted((prev) => !prev)}
             onTogglePlay={togglePlay}
             onVolumeChange={changeVolume}
+            courseId={courseId}
+            user={user}
           />
         </>
       ) : (
@@ -364,6 +519,8 @@ function PlayerControls({
   onToggleMuted,
   onTogglePlay,
   onVolumeChange,
+  courseId,
+  user,
 }: {
   currentTime: number;
   duration: number;
@@ -384,7 +541,10 @@ function PlayerControls({
   onToggleMuted: () => void;
   onTogglePlay: () => void;
   onVolumeChange: (volume: number) => void;
+  courseId: string;
+  user?: User;
 }) {
+  const [showReviewModal, setShowReviewModal] = useState(false);
   // 현재 재생 위치를 퍼센트로 계산해 progress bar의 채워진 영역에 사용합니다.
   const progress = getProgressPercent(currentTime, duration, isEnded);
   const progressValue = getProgressValue(currentTime, duration, isEnded);
@@ -479,6 +639,17 @@ function PlayerControls({
             </div>
 
             <div className="flex h-8 items-center gap-2">
+              {/* 수강평 버튼 */}
+              {user && (
+                <button
+                  onClick={() => setShowReviewModal(true)}
+                  className="flex items-center gap-1 px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded-md transition-colors"
+                  aria-label="수강평 작성"
+                >
+                  <MessageSquareIcon className="size-3" />
+                  <span>수강평</span>
+                </button>
+              )}
               {/* 배속 선택 컨트롤입니다. */}
               <select
                 value={playbackRate}
@@ -562,6 +733,13 @@ function PlayerControls({
             <span className="leading-none">봤어요</span>
           </Button>
         </div>
+        {/* Review Modal */}
+        <ReviewModal
+          courseId={courseId}
+          isOpen={showReviewModal}
+          onClose={() => setShowReviewModal(false)}
+          setShowReviewModal={setShowReviewModal}
+        />
       </div>
     </div>
   );

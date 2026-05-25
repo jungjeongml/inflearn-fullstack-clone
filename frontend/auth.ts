@@ -2,9 +2,9 @@ import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/prisma";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { comparePassword } from "./lib/password-utils"; 
-import * as jwt from 'jsonwebtoken'
-import {JWT} from "next-auth/jwt"
+import { comparePassword } from "./lib/password-utils";
+import * as jwt from "jsonwebtoken";
+import { JWT } from "next-auth/jwt";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   useSecureCookies: process.env.NODE_ENV === "production",
@@ -45,7 +45,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // 3. 비밀번호 일치 여부 확인
         const passwordMatch = comparePassword(
           credentials.password as string,
-          user.hashedPassword as string
+          user.hashedPassword as string,
         );
 
         if (!passwordMatch) {
@@ -68,5 +68,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   pages: {},
-  callbacks: {},
+  callbacks: {
+    jwt({ token, user }) {
+      if (user) {
+        //User is available during sign-in
+        token.id = user.id;
+      }
+      return token;
+    },
+    session({ session, token }) {
+      (session as any).user.id = token.id;
+      return session;
+    },
+  },
 });
