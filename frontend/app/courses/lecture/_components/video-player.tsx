@@ -30,7 +30,6 @@ import type { User } from "next-auth";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -110,8 +109,13 @@ function ReviewModal({
       toast.success("수강평이 등록되었습니다.");
       setShowReviewModal(false);
     },
-    onError: (error: any) => {
-      toast.error(error.message || "수강평 등록에 실패했습니다.");
+    onError: (error: unknown) => {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "수강평 등록에 실패했습니다.";
+
+      toast.error(message);
     },
   });
 
@@ -230,6 +234,10 @@ export function VideoPlayer({
   const hasSeekOnReadyRef = useRef(false);
   const [isCenterPlayVisible, setIsCenterPlayVisible] = useState(false);
   const centerPlayTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  useEffect(() => {
+    setIsPointerInside(playerShellRef.current?.matches(":hover") ?? false);
+  }, [videoUrl]);
 
   useEffect(() => {
     setIsCompleted(lectureActivity?.isCompleted ?? false);
@@ -561,7 +569,12 @@ function PlayerControls({
     <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 px-4 pb-3 pt-10">
       <div className="pointer-events-auto mx-auto w-full">
         <div className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-32 bg-gradient-to-t from-[#111416] via-[#111416]/85 to-transparent" />
-        <div className={cn(isPointerInside ? "block" : "hidden")}>
+        <div
+          className={cn(
+            "hidden group-hover/player:block",
+            isPointerInside && "block",
+          )}
+        >
           {/* 영상 탐색용 progress bar입니다. 시각 요소는 직접 그리고, 투명 range가 입력만 담당합니다. */}
           <div className="relative h-4 w-full">
             <div className="absolute left-0 right-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-white/35">

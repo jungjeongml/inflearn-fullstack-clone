@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
@@ -79,7 +80,7 @@ export class QuestionsController {
     );
   }
 
-  @Put('questions/:questionId')
+  @Delete('questions/:questionId')
   @UseGuards(AccessTokenGuard)
   @ApiBearerAuth('access-token')
   @ApiOkResponse({
