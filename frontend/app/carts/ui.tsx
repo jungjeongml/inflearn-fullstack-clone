@@ -55,7 +55,7 @@ export default function CartUI() {
   const totalCartItemCount = cartItemsQuery.data?.data?.totalCount ?? 0;
   const selectedCartItemCount = selectedCartItemIds.length;
   const selectedCartItems = cartItemList.filter((item) =>
-    selectedCartItemIds.includes(item.id),
+    selectedCartItemIds.includes(item.courseId),
   );
   const totalOriginalPrice = selectedCartItems.reduce(
     (sum, item) => sum + item.course.price,

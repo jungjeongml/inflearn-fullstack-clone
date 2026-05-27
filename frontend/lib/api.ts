@@ -15,7 +15,8 @@ import {
   coursesControllerCreateReview,
   coursesControllerDeleteReview,
   coursesControllerEnrollCourse,
-  coursesControllerFindAllMyCourse,
+  coursesControllerFindAllInstructorCourses,
+  coursesControllerFindAllMyCourses,
   coursesControllerFindOne,
   coursesControllerGetCourseReviews,
   coursesControllerGetFavorite,
@@ -68,10 +69,13 @@ export const getAllCategories = async () => {
 };
 
 export const getAllInstructorCourses = async () => {
-  const { data, error } = await coursesControllerFindAllMyCourse({
-    cache: "no-store",
-    security: [{ scheme: "bearer", type: "http" }],
-  });
+  const { data, error } = await coursesControllerFindAllInstructorCourses();
+
+  return { data, error };
+};
+
+export const getAllMyCourses = async () => {
+  const { data, error } = await coursesControllerFindAllMyCourses();
 
   return { data, error };
 };
