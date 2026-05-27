@@ -46,7 +46,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as api from "@/lib/api";
 import { User } from "next-auth";
 import { useCallback, useEffect, useState } from "react";
@@ -138,19 +138,6 @@ function sortSections(sections: SectionEntity[]) {
 
 function sortLectures(lectures: LectureEntity[]) {
   return [...lectures].sort((a, b) => a.order - b.order);
-}
-
-function NoticeAction({ children }: { children: React.ReactNode }) {
-  return (
-    <Button
-      type="button"
-      variant="outline"
-      className="h-11 w-full border-gray-200 bg-white font-semibold text-gray-800 hover:border-[#00c471] hover:text-[#00a85f]"
-      onClick={() => alert("구현 예정입니다.")}
-    >
-      {children}
-    </Button>
-  );
 }
 
 function StarRating({ rating }: { rating: number }) {
@@ -958,9 +945,24 @@ function FloatingMenu({
   const router = useRouter();
   const [isEnrolled, setIsEnrolled] = useState(course.isEnrolled);
   const [enrollDialogOpen, setEnrollDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
+
   const getFavoriteQuery = useQuery({
     queryKey: ["favorite", course.id],
     queryFn: () => api.getFavorite(course.id),
+  });
+
+  const cartItemsQuery = useQuery({
+    queryFn: () => api.getCartItems(),
+    queryKey: ["cart-items"],
+  });
+
+  const addToCartMutation = useMutation({
+    mutationFn: () => api.addToCart(course.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cart-items"] });
+      toast.success(`${course.title}이(가) 장바구니에 담겼습니다.`);
+    },
   });
 
   const addFavoriteMutation = useMutation({
@@ -979,6 +981,10 @@ function FloatingMenu({
 
   const isFavoriteDisabled =
     addFavoriteMutation.isPending || removeFavoriteMutation.isPending;
+  const isCourseInCart =
+    cartItemsQuery.data?.data?.items?.some(
+      (item) => item.courseId === course.id,
+    ) ?? false;
 
   const handleFavorite = useCallback(() => {
     if (user) {
@@ -991,6 +997,18 @@ function FloatingMenu({
       alert("로그인 후 이용해주세요.");
     }
   }, [user, getFavoriteQuery, removeFavoriteMutation, addFavoriteMutation]);
+
+  const handleCart = useCallback(() => {
+    if (!user) {
+      alert("로그인 후 이용해주세요");
+      return;
+    }
+    if (isCourseInCart) {
+      router.push("/carts");
+    } else {
+      addToCartMutation.mutate();
+    }
+  }, [user, isCourseInCart, router, addToCartMutation]);
 
   const enrollMutation = useMutation({
     mutationFn: () => api.enrollCourse(course.id),
@@ -1101,10 +1119,16 @@ function FloatingMenu({
                 </Button>
               )}
 
-              <NoticeAction>
+              <Button
+                type="button"
+                variant="outline"
+                className={`h-11 w-full border-gray-200 bg-white font-semibold text-gray-800 hover:border-[#00c471] hover:text-[#00a85f] ${addToCartMutation.isPending && "cursor-not-allowed"}`}
+                onClick={handleCart}
+                disabled={addToCartMutation.isPending}
+              >
                 <ShoppingCart className="mr-1 size-4" />
-                장바구니에 담기
-              </NoticeAction>
+                {isCourseInCart ? "수강 바구니로 이동" : "바구니에 담기"}
+              </Button>
               <Button
                 onClick={handleFavorite}
                 disabled={isFavoriteDisabled}

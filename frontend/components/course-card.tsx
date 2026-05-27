@@ -9,9 +9,10 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { getLevelText } from "@/lib/level";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as api from "@/lib/api";
 import { User } from "next-auth";
+import { toast } from "sonner";
 
 interface CourseCardProps {
   user?: User;
@@ -20,6 +21,7 @@ interface CourseCardProps {
 
 export default function CourseCard({ user, course }: CourseCardProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const getMyFavoritesQuery = useQuery({
     queryKey: ["my-Favorites", user?.id],
     queryFn: async () => {
@@ -66,9 +68,23 @@ export default function CourseCard({ user, course }: CourseCardProps) {
     }
   };
 
+  const addToCartMutation = useMutation({
+    mutationFn: () => api.addToCart(course.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cart-items"] });
+      toast.success(`${course.title}이(가) 장바구니에 담겼습니다.`);
+    },
+  });
+
   const handleCartClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (!user) {
+      alert("로그인 후 이용해주세요.");
+    }
+
+    addToCartMutation.mutate();
   };
 
   const formatPrice = (price: number) => {

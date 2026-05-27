@@ -5,9 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "./ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Avatar, AvatarFallback } from "./ui/avatar";
+import { Badge } from "./ui/badge";
 import { Input } from "./ui/input";
-import { Layers, Search } from "lucide-react";
+import { Search, ShoppingCart } from "lucide-react";
 import {
   Popover,
   PopoverTrigger,
@@ -17,6 +18,8 @@ import React, { useState } from "react";
 import { CATEGORY_ICONS } from "@/app/constants/category-icons";
 import { Session } from "next-auth";
 import { signOut } from "next-auth/react";
+import { useQuery } from "@tanstack/react-query";
+import * as api from "@/lib/api";
 
 export default function SiteHeader({
   session,
@@ -34,6 +37,11 @@ export default function SiteHeader({
   const isCategoryNeeded = pathname == "/" || pathname.includes("/courses");
   const [search, setSearch] = useState("");
   const router = useRouter();
+  const cartItemsQuery = useQuery({
+    queryFn: () => api.getCartItems(),
+    queryKey: ["cart-items"],
+  });
+  const cartItemCount = cartItemsQuery.data?.data?.totalCount ?? 0;
 
   if (!isSiteHeaderNeeded) return null;
 
@@ -136,6 +144,21 @@ export default function SiteHeader({
               className="font-semibold border-gray-200 hover:border-[#1dc078] hover:text-[#1dc078]"
             >
               <Link href="/instructor">지식공유자</Link>
+            </Button>
+            <Button
+              asChild
+              variant="ghost"
+              size="icon"
+              className="relative text-gray-600 hover:text-[#1dc078]"
+            >
+              <Link href="/carts" aria-label={`장바구니 ${cartItemCount}개`}>
+                <ShoppingCart className="size-5" />
+                {cartItemCount > 0 && (
+                  <Badge className="absolute -right-1 -top-1 h-4 min-w-4 px-1 text-[10px] leading-none bg-[#ff5c5c] text-white hover:bg-[#ff5c5c]">
+                    {cartItemCount > 99 ? "99+" : cartItemCount}
+                  </Badge>
+                )}
+              </Link>
             </Button>
             {/* Avatar + Popover or 로그인 버튼 */}
             {session ? (
