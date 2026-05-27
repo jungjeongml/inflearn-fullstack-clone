@@ -20,6 +20,9 @@ importers:
       '@ckeditor/ckeditor5-react':
         specifier: ^11.1.2
         version: 11.1.2(ckeditor5@48.0.1)(react@19.1.0)
+      '@portone/browser-sdk':
+        specifier: ^0.0.23
+        version: 0.0.23
       '@prisma/client':
         specifier: ^6.6.0
         version: 6.6.0(prisma@6.6.0(typescript@5.9.3))(typescript@5.9.3)
@@ -1361,6 +1364,9 @@ packages:
 
   '@panva/hkdf@1.2.1':
     resolution: {integrity: sha512-6oclG6Y3PiDFcoyk8srjLfVKyMfVCKJ27JwNPViuXziFpmdz+MZnZN/aKY0JGXgYuO/VghU0jcOAZgWXZ1Dmrw==}
+
+  '@portone/browser-sdk@0.0.23':
+    resolution: {integrity: sha512-fgUkPdNjvBArrcuBCtbGGhkHDhrR39WBFmXa3XNWjpYYbIS2ltOpw5R8Eu5SzSR9e/r8GSMmCuOhYr0f2j2Kng==}
 
   '@prisma/client@6.6.0':
     resolution: {integrity: sha512-vfp73YT/BHsWWOAuthKQ/1lBgESSqYqAWZEYyTdGXyFAHpmewwWL2Iz6ErIzkj4aHbuc6/cGSsE6ZY+pBO04Cg==}
@@ -7324,6 +7330,8 @@ snapshots:
   '@open-draft/until@2.1.0': {}
 
   '@panva/hkdf@1.2.1': {}
+
+  '@portone/browser-sdk@0.0.23': {}
 
   '@prisma/client@6.6.0(prisma@6.6.0(typescript@5.9.3))(typescript@5.9.3)':
     optionalDependencies:

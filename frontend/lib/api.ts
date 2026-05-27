@@ -35,6 +35,7 @@ import {
   lecturesControllerUpdate,
   lecturesControllerUpdateLectureActivity,
   mediaControllerUploadMedia,
+  paymentsControllerVerifyPayment,
   questionsControllerCreate,
   questionsControllerFindAll,
   questionsControllerFindAllByInstructorId,
@@ -54,6 +55,7 @@ import {
   UpdateUserDto,
   usersControllerGetProfile,
   usersControllerUpdateUser,
+  VerifyPaymentDto,
 } from "@/generated/openapi-client";
 
 export const getAllCategories = async () => {
@@ -491,6 +493,14 @@ export const removeFromCart = async (courseId: string) => {
 
 export const clearCart = async () => {
   const { data, error } = await cartsControllerClearCart();
+
+  return { data, error };
+};
+
+export const verifyPayment = async (verifyPaymentDto: VerifyPaymentDto) => {
+  const { data, error } = await paymentsControllerVerifyPayment({
+    body: verifyPaymentDto,
+  });
 
   return { data, error };
 };
