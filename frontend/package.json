@@ -16,6 +16,7 @@
     "@ckeditor/ckeditor5-react": "^11.1.2",
     "@portone/browser-sdk": "^0.0.23",
     "@prisma/client": "^6.6.0",
+    "@sentry/nextjs": "^10.54.0",
     "@tanstack/react-query": "^5.100.3",
     "bcryptjs": "^3.0.3",
     "ckeditor5": "^48.0.1",
