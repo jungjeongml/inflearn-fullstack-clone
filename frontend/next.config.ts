@@ -11,12 +11,16 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
+      ...(process.env.CLOUDFRONT_DOMAIN
+        ? [
+            {
+              protocol: "https" as const,
+              hostname: process.env.CLOUDFRONT_DOMAIN as string,
+            },
+          ]
+        : []),
       {
-        protocol: "https",
-        hostname: process.env.CLOUDFRONT_DOMAIN as string,
-      },
-      {
-        protocol: "https",
+        protocol: "https" as const,
         hostname: "cdn.inflearn.com",
       },
     ],

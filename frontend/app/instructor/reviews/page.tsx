@@ -13,5 +13,5 @@ export default async function InstructorReviewsPage() {
     return <div>리뷰를 가져오는데 에러가 발생하였습니다.</div>;
   }
 
-  return <UI user={session?.user!} reviews={reviews ?? []} />;
+  return <UI user={session.user} reviews={reviews ?? []} />;
 }

@@ -56,7 +56,7 @@ export default function UI({ profile }: { profile: User }) {
         toast.error(uploadMediaResult.error as string);
         return;
       }
-      setImage((uploadMediaResult.data as any).cloudFront.url);
+      setImage((uploadMediaResult.data as Record<string, { url: string }>).cloudFront.url);
     }
   }, []);
 
