@@ -5,6 +5,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { comparePassword } from "./lib/password-utils";
 import * as jwt from "jsonwebtoken";
 import { JWT } from "next-auth/jwt";
+import GoogleProvider from "next-auth/providers/google";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   useSecureCookies: process.env.USE_HTTPS === "true",
@@ -12,6 +13,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   secret: process.env.AUTH_SECRET,
   providers: [
+    GoogleProvider({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+    }),
     CredentialsProvider({
       name: "credentials",
       credentials: {

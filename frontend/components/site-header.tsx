@@ -117,7 +117,7 @@ export default function SiteHeader({
   ];
 
   const renderSearchField = (isInactive: boolean) => (
-    <div className="relative flex h-full w-full items-center rounded-full border border-[#d9dee3] bg-white shadow-sm transition-shadow focus-within:border-[#00c471] focus-within:shadow-md">
+    <div className="relative flex h-full w-full items-center rounded-full border border-[#d9dee3] bg-white shadow-sm transition-shadow focus-within:border-primary focus-within:shadow-md">
       <div className="ml-5 flex items-center gap-1.5">
         <Image
           src="/images/course_logo.png"
@@ -138,7 +138,7 @@ export default function SiteHeader({
       />
       <button
         type="submit"
-        className="absolute right-2.5 flex size-10 items-center justify-center rounded-full bg-[#00c471] text-white transition-colors hover:bg-[#00ad63] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-[#00c471]/30"
+        className="absolute right-2.5 flex size-9 items-center justify-center rounded-full bg-primary text-white transition-colors hover:bg-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/30"
         aria-label="검색"
         disabled={isInactive}
       >
@@ -181,7 +181,7 @@ export default function SiteHeader({
                 <Link
                   href="#"
                   key={item.id}
-                  className="group relative flex items-center gap-1.5 rounded-md px-1 py-2 text-[#212529] transition-colors hover:text-[#00c471]"
+                  className="group relative flex items-center gap-1.5 rounded-md px-1 py-2 text-[#212529] transition-colors hover:text-primary"
                   tabIndex={isScrolled ? -1 : undefined}
                 >
                   <Image
@@ -207,7 +207,7 @@ export default function SiteHeader({
               onSubmit={handleSearchSubmit}
               className={cn(
                 "absolute inset-x-0 mx-auto h-12 max-w-[560px] transition-all duration-300 ease-out",
-                isScrolled ? "top-1" : "top-[64px]",
+                isScrolled ? "top-1 max-w-[520px]" : "top-[64px]",
               )}
             >
               {renderSearchField(false)}
@@ -219,25 +219,27 @@ export default function SiteHeader({
               asChild
               size="sm"
               variant="outline"
-              className="font-semibold border-gray-200 hover:border-[#1dc078] hover:text-[#1dc078]"
+              className="h-9 rounded-full border-none bg-muted px-4 text-sm font-semibold leading-none hover:bg-muted hover:text-primary"
             >
               <Link href="/instructor">지식공유자</Link>
             </Button>
-            <Button
-              asChild
-              variant="ghost"
-              size="icon"
-              className="relative text-gray-600 hover:text-[#1dc078]"
-            >
-              <Link href="/carts" aria-label={`장바구니 ${cartItemCount}개`}>
-                <ShoppingCart className="size-5" />
-                {cartItemCount > 0 && (
-                  <Badge className="absolute -right-1 -top-1 h-4 min-w-4 px-1 text-[10px] leading-none bg-[#ff5c5c] text-white hover:bg-[#ff5c5c]">
-                    {cartItemCount > 99 ? "99+" : cartItemCount}
-                  </Badge>
-                )}
-              </Link>
-            </Button>
+            {session && (
+              <Button
+                asChild
+                variant="ghost"
+                size="icon"
+                className="relative text-gray-600 hover:text-primary"
+              >
+                <Link href="/carts" aria-label={`장바구니 ${cartItemCount}개`}>
+                  <ShoppingCart className="size-5" />
+                  {cartItemCount > 0 && (
+                    <Badge className="absolute -right-1 -top-1 h-4 min-w-4 px-1 text-[10px] leading-none bg-[#ff5c5c] text-white hover:bg-[#ff5c5c]">
+                      {cartItemCount > 99 ? "99+" : cartItemCount}
+                    </Badge>
+                  )}
+                </Link>
+              </Button>
+            )}
             {session ? (
               <Popover>
                 <PopoverTrigger asChild>
@@ -272,26 +274,30 @@ export default function SiteHeader({
                     )}
                   </div>
                   <button
-                    className="w-full text-left px-4 py-3 hover:bg-gray-100 focus:outline-none"
+                    className="group w-full text-left px-4 py-3 hover:bg-gray-100 focus:outline-none"
                     onClick={() =>
                       (window.location.href = "/my/settings/account")
                     }
                   >
-                    <div className="font-semibold text-gray-800">
+                    <div className="font-semibold text-gray-800 transition-colors group-hover:text-primary">
                       프로필 수정
                     </div>
                   </button>
                   <button
-                    className="w-full text-left px-4 py-3 hover:bg-gray-100 focus:outline-none border-t border-gray-100"
+                    className="group w-full text-left px-4 py-3 hover:bg-gray-100 focus:outline-none border-t border-gray-100"
                     onClick={() => signOut()}
                   >
-                    <div className="font-semibold text-gray-800">로그아웃</div>
+                    <div className="font-semibold text-gray-800 transition-colors group-hover:text-primary">
+                      로그아웃
+                    </div>
                   </button>
                   <button
-                    className="w-full text-left px-4 py-3 hover:bg-gray-100 focus:outline-none border-t border-gray-100"
+                    className="group w-full text-left px-4 py-3 hover:bg-gray-100 focus:outline-none border-t border-gray-100"
                     onClick={() => router.push("/my/courses")}
                   >
-                    <div className="font-semibold text-gray-800">내 학습</div>
+                    <div className="font-semibold text-gray-800 transition-colors group-hover:text-primary">
+                      내 학습
+                    </div>
                   </button>
                 </PopoverContent>
               </Popover>
@@ -300,7 +306,7 @@ export default function SiteHeader({
                 asChild
                 size="sm"
                 variant="outline"
-                className="font-semibold border-gray-200 hover:border-[#1dc078] hover:text-[#1dc078]"
+                className="h-9 rounded-full border-none bg-muted px-4 text-sm font-semibold leading-none hover:bg-muted hover:text-primary"
               >
                 <Link href="/signin">로그인</Link>
               </Button>
@@ -309,14 +315,14 @@ export default function SiteHeader({
         </div>
 
         {isCategoryNeeded && (
-          <nav className="category-nav flex w-full gap-6 overflow-x-auto pb-4 pt-1 scrollbar-none lg:justify-between">
+          <nav className="category-nav flex w-full gap-6 overflow-x-auto pb-4 pt-4 scrollbar-none lg:justify-between">
             {categories.map((category) => (
               <Link
                 key={category.id}
                 href={`/courses/${category.slug}`}
                 className="shrink-0"
               >
-                <div className="category-item flex flex-col items-center min-w-[72px] text-gray-700 hover:text-[#1dc078] cursor-pointer transition-colors">
+                <div className="category-item flex flex-col items-center min-w-[72px] text-gray-700 hover:text-primary cursor-pointer transition-colors">
                   {React.createElement(
                     CATEGORY_ICONS[category.slug] || CATEGORY_ICONS["default"],
                     {
