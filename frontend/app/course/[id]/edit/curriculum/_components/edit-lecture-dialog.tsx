@@ -11,12 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useDropzone } from "react-dropzone";
-import {
-  QueryClient,
-  useMutation,
-  useQueryClient,
-} from "@tanstack/react-query";
-import { FileVideo } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { FileVideo, Loader2 } from "lucide-react";
 import * as api from "@/lib/api";
 import { toast } from "sonner";
 import { Lecture } from "@/generated/openapi-client";
@@ -58,16 +54,22 @@ export function EditLectureDialog({
     description: lecture.description ?? "<p>강의의 설명을 적어주세요.</p>",
     videoStorageInfo: lecture.videoStorageInfo,
   });
+  const [isUploading, setIsUploading] = useState(false);
+  const hasVideo = Boolean(form.videoStorageInfo);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
-    if (file) {
+    if (!file) return;
+    setIsUploading(true);
+    try {
       const { data, error } = await api.uploadMedia(file);
       if (!data || error) {
         toast.error(error as string);
         return;
       }
       setForm((prev) => ({ ...prev, videoStorageInfo: data }));
+    } finally {
+      setIsUploading(false);
     }
   }, []);
 
@@ -76,13 +78,12 @@ export function EditLectureDialog({
     accept: ACCEPTED_VIDEO_TYPES,
     maxFiles: 1,
     maxSize: MAX_FILE_SIZE,
+    disabled: isUploading,
   });
 
   const editLectureMutation = useMutation({
     mutationFn: async (data: EditLectureForm) => {
-      return api.updateLecture(lecture.id, {
-        ...form,
-      });
+      return api.updateLecture(lecture.id, data);
     },
     onSuccess: () => {
       toast.success("강의가 수정되었습니다.");
@@ -122,12 +123,16 @@ export function EditLectureDialog({
             <Label>강의 영상</Label>
             {/* 업로드 된 강의 미리보기 */}
             {form.videoStorageInfo && (
-              <div className="w-full h-auto min-h-[200px]">
+              <div className="space-y-2">
                 <video
                   autoPlay={true}
                   controls={true}
+                  className="w-full rounded-md bg-black"
                   src={form.videoStorageInfo.cloudFront.url}
                 />
+                <p className="text-sm text-gray-600">
+                  현재 영상: {form.videoStorageInfo.filename}
+                </p>
               </div>
             )}
 
@@ -140,20 +145,44 @@ export function EditLectureDialog({
             </p>
             <div
               {...getRootProps()}
-              className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer ${
-                isDragActive ? "border-primary" : "border-gray-300"
-              }`}
+              className={`border-2 rounded-lg p-4 text-center ${
+                isUploading ? "cursor-not-allowed opacity-70" : "cursor-pointer"
+              } ${
+                hasVideo
+                  ? "border-gray-200 bg-gray-50"
+                  : "border-dashed border-gray-300"
+              } ${isDragActive ? "border-primary" : ""}`}
             >
               <input {...getInputProps()} />
-              <div className="py-8">
-                <FileVideo className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+              <div className={hasVideo ? "py-4" : "py-8"}>
+                {isUploading ? (
+                  <Loader2
+                    className="w-12 h-12 mx-auto mb-4 text-gray-400 animate-spin"
+                    aria-label="영상 업로드 중"
+                  />
+                ) : (
+                  <FileVideo
+                    className={`mx-auto mb-4 text-gray-400 ${
+                      hasVideo ? "h-8 w-8" : "h-12 w-12"
+                    }`}
+                  />
+                )}
                 <p className="text-sm text-gray-600">
-                  {form.videoStorageInfo
-                    ? `선택된 파일: ${form.videoStorageInfo.fileName}`
-                    : isDragActive
-                      ? "파일을 여기에 놓아주세요"
-                      : "클릭하거나 파일을 드래그하여 업로드하세요"}
+                  {isUploading
+                    ? hasVideo
+                      ? "영상을 교체하고 있습니다"
+                      : "영상을 업로드하고 있습니다"
+                    : hasVideo
+                      ? "다른 영상으로 교체"
+                      : isDragActive
+                        ? "파일을 여기에 놓아주세요"
+                        : "클릭하거나 파일을 드래그하여 업로드하세요"}
                 </p>
+                {hasVideo && !isUploading && (
+                  <p className="mt-1 text-xs text-gray-500">
+                    클릭하거나 파일을 드래그하세요
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -170,7 +199,10 @@ export function EditLectureDialog({
             <Button variant="outline" type="button" onClick={onClose}>
               취소
             </Button>
-            <Button type="submit" disabled={editLectureMutation.isPending}>
+            <Button
+              type="submit"
+              disabled={editLectureMutation.isPending || isUploading}
+            >
               {editLectureMutation.isPending ? "수정 중..." : "수정"}
             </Button>
           </div>

@@ -18,6 +18,7 @@ import { Course } from "@/generated/openapi-client";
 import { useMutation } from "@tanstack/react-query";
 import * as api from "@/lib/api";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 type FormValues = {
   title: string;
@@ -29,6 +30,7 @@ type FormValues = {
 };
 
 export default function EditCourseInfoUI({ course }: { course: Course }) {
+  const router = useRouter();
   const form = useForm<FormValues>({
     defaultValues: {
       title: course.title ?? "",
@@ -58,13 +60,14 @@ export default function EditCourseInfoUI({ course }: { course: Course }) {
       }),
     onSuccess: () => {
       toast.success("강의 정보가 성공적으로 업데이트 되었습니다!");
+      router.push(`/course/${course.id}/edit/curriculum`);
     },
   });
 
   return (
     <form
       onSubmit={handleSubmit((data: FormValues) =>
-        updateCourseMutation.mutate(data)
+        updateCourseMutation.mutate(data),
       )}
       className="space-y-8 rounded-lg bg-white p-8 shadow w-xl"
     >
@@ -81,7 +84,6 @@ export default function EditCourseInfoUI({ course }: { course: Course }) {
           />
           <FieldError errors={[errors.title]} />
         </Field>
-
 
         <Field data-invalid={!!errors.shortDescription}>
           <FieldLabel htmlFor="shortDescription">

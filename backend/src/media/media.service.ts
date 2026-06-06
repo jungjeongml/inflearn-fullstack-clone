@@ -35,8 +35,12 @@ export class MediaService {
       }),
     );
 
+    const decodedFilename = Buffer.from(file.originalname, 'latin1')
+      .toString('utf8')
+      .normalize('NFC');
+
     return {
-      filename: file.originalname,
+      filename: decodedFilename,
       storageType: 's3',
       s3: {
         bucket: process.env.AWS_MEDIA_S3_BUCKET_NAME,
