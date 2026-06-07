@@ -27,6 +27,7 @@ interface EditLectureDialogProps {
 interface EditLectureForm {
   title: string;
   description: string;
+  duration?: number;
   videoStorageInfo?: any;
 }
 
@@ -52,6 +53,7 @@ export function EditLectureDialog({
   const [form, setForm] = useState<EditLectureForm>({
     title: lecture.title,
     description: lecture.description ?? "<p>강의의 설명을 적어주세요.</p>",
+    duration: lecture.duration,
     videoStorageInfo: lecture.videoStorageInfo,
   });
   const [isUploading, setIsUploading] = useState(false);
@@ -62,12 +64,15 @@ export function EditLectureDialog({
     if (!file) return;
     setIsUploading(true);
     try {
-      const { data, error } = await api.uploadMedia(file);
+      const [duration, { data, error }] = await Promise.all([
+        getVideoFileDuration(file),
+        api.uploadMedia(file),
+      ]);
       if (!data || error) {
         toast.error(error as string);
         return;
       }
-      setForm((prev) => ({ ...prev, videoStorageInfo: data }));
+      setForm((prev) => ({ ...prev, duration, videoStorageInfo: data }));
     } finally {
       setIsUploading(false);
     }
@@ -129,6 +134,12 @@ export function EditLectureDialog({
                   controls={true}
                   className="w-full rounded-md bg-black"
                   src={form.videoStorageInfo.cloudFront.url}
+                  onLoadedMetadata={(event) => {
+                    const duration = Math.round(event.currentTarget.duration);
+                    if (!Number.isFinite(duration) || duration <= 0) return;
+
+                    setForm((prev) => ({ ...prev, duration }));
+                  }}
                 />
                 <p className="text-sm text-gray-600">
                   현재 영상: {form.videoStorageInfo.filename}
@@ -210,4 +221,29 @@ export function EditLectureDialog({
       </DialogContent>
     </Dialog>
   );
+}
+
+function getVideoFileDuration(file: File) {
+  return new Promise<number | undefined>((resolve) => {
+    const video = document.createElement("video");
+    const objectUrl = URL.createObjectURL(file);
+
+    const cleanup = () => {
+      URL.revokeObjectURL(objectUrl);
+      video.removeAttribute("src");
+      video.load();
+    };
+
+    video.preload = "metadata";
+    video.onloadedmetadata = () => {
+      const duration = Math.round(video.duration);
+      cleanup();
+      resolve(Number.isFinite(duration) && duration > 0 ? duration : undefined);
+    };
+    video.onerror = () => {
+      cleanup();
+      resolve(undefined);
+    };
+    video.src = objectUrl;
+  });
 }

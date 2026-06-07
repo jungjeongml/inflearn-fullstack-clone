@@ -71,7 +71,6 @@ export default function UI({
             averageRating={course.averageRating}
             totalReviews={course.totalReviews}
             totalLectures={course.totalLectures}
-            instructorBio={instructorBio}
             instructorBioHeadline={instructorBioHeadline}
             instructorBioRest={instructorBioRest}
           />

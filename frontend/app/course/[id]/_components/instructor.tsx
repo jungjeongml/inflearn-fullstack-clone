@@ -1,6 +1,9 @@
+"use client";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BookOpen, MessageCircle, Star, Users } from "lucide-react";
-import { getInitial, htmlToPlainText } from "../_utils/utils";
+import { useState } from "react";
+import { getInitial } from "../_utils/utils";
 
 type InstructorSectionProps = {
   instructorName: string;
@@ -9,7 +12,6 @@ type InstructorSectionProps = {
   averageRating: number;
   totalReviews: number;
   totalLectures: number;
-  instructorBio: string;
   instructorBioHeadline: string;
   instructorBioRest: string;
 };
@@ -21,11 +23,10 @@ export function InstructorSection({
   averageRating,
   totalReviews,
   totalLectures,
-  instructorBio,
   instructorBioHeadline,
   instructorBioRest,
 }: InstructorSectionProps) {
-  const plainInstructorBio = htmlToPlainText(instructorBio);
+  const [isBioExpanded, setIsBioExpanded] = useState(false);
 
   return (
     <section className="py-2">
@@ -84,17 +85,23 @@ export function InstructorSection({
             🚀 {instructorBioHeadline}
           </p>
           {instructorBioRest && (
-            <p className="text-lg leading-8 text-gray-700">
+            <p
+              className={`text-lg leading-8 text-gray-700 ${
+                isBioExpanded ? "" : "line-clamp-2"
+              }`}
+            >
               {instructorBioRest}
             </p>
           )}
-          <button
-            type="button"
-            className="text-lg font-medium text-gray-500"
-            onClick={() => alert(plainInstructorBio)}
-          >
-            더보기
-          </button>
+          {instructorBioRest && !isBioExpanded && (
+            <button
+              type="button"
+              className="text-lg font-medium text-gray-500"
+              onClick={() => setIsBioExpanded(true)}
+            >
+              더보기
+            </button>
+          )}
         </div>
       </div>
     </section>
